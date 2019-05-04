@@ -12,7 +12,7 @@ class Pixel():
 
     def __init__(self, r, g, b):
         '''
-        A pixel is a tripe of three integers each in the range 0 - 255.
+        A pixel is a triple of three integers each in the range 0 - 255.
         The first is the amount of red, the second the amount of blue
         and the third the amount of green.
         '''
@@ -38,18 +38,18 @@ class Pixel():
 
 class Image():
 
-    def __init__(self, name, load = False, width = None, height = None):
+    def __init__(self, name, load = False, width = None, height = None, color = (0, 0, 0)):
         '''
         If load is True, an image file will load.
-        Otherise an empty imgage  of dimensions
-        width and height will be created.
+        Otherise an empty imgage will be created.
         '''
         if load:
             img_surface = pygame.image.load(name)
             pix_array = surfarray.array3d(img_surface)
             width, height = pix_array.shape[0], pix_array.shape[1]
         else:
-            pix_array = np.zeros((width, height, 3))
+            pix_array = np.full((width, height, 3), color)
+            # pix_array = np.zeros((width, height, 3))
 
         pygame.display.set_caption(name)   
 

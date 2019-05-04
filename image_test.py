@@ -22,77 +22,40 @@ def one_to_one(filter, img):
 
 def remove_red(pix):
     new_red = 0
-    new_green = pix.green 
+    new_green = pix.green
     new_blue = pix.blue 
     new_pix = image.Pixel(new_red, new_green, new_blue)
     return new_pix
 
-def _remove_red(img):
-    width, height = img.get_width(), img.get_height()
-    new_img = image.Image(img.name, False, width, height)
-    for w in range(width):
-        for h in range(height):
-            pix = img.get_pixel(w, h)
-            new_red = 0
-            new_green = pix.green 
-            new_blue = pix.blue 
-            new_pix = image.Pixel(new_red, new_green, new_blue)
-            new_img.set_pixel(new_pix, w, h)
-    return new_img
+def remove_green(pix):
+    new_red = pix.red
+    new_green = 0
+    new_blue = pix.blue 
+    new_pix = image.Pixel(new_red, new_green, new_blue)
+    return new_pix
 
-def remove_green(img):
-    width, height = img.get_width(), img.get_height()
-    new_img = image.Image(img.name, False, width, height)
-    for w in range(width):
-        for h in range(height):
-            pix = img.get_pixel(w, h)
-            new_red = pix.red
-            new_green = 0 
-            new_blue = pix.blue 
-            new_pix = image.Pixel(new_red, new_green, new_blue)
-            new_img.set_pixel(new_pix, w, h)
-    return new_img
+def remove_blue(pix):
+    new_red = pix.red
+    new_green = pix.green 
+    new_blue = 0 
+    new_pix = image.Pixel(new_red, new_green, new_blue)
+    return new_pix
 
-def remove_blue(img):
-    width, height = img.get_width(), img.get_height()
-    new_img = image.Image(img.name, False, width, height)
-    for w in range(width):
-        for h in range(height):
-            pix = img.get_pixel(w, h)
-            new_red = pix.red
-            new_green = pix.green 
-            new_blue = 0
-            new_pix = image.Pixel(new_red, new_green, new_blue)
-            new_img.set_pixel(new_pix, w, h)
-    return new_img
+def greyscale(pix):
+    r, g, b = pix.red, pix.green, pix.blue
+    avg = r // 3 + g // 3 + b // 3
+    new_pix = image.Pixel(avg, avg, avg)
+    return new_pix
 
-def greyscale(img):
-    width, height = img.get_width(), img.get_height()
-    new_img = image.Image(img.name, False, width, height)
-    for w in range(width):
-        for h in range(height):
-            pix = img.get_pixel(w, h)
-            r, g, b = pix.red, pix.green, pix.blue
-            avg = r // 3 + g // 3 + b // 3
-            new_pix = image.Pixel(avg, avg, avg)
-            new_img.set_pixel(new_pix, w, h)
-    return new_img
-
-def black_and_white(img):
-    width, height = img.get_width(), img.get_height()
-    new_img = image.Image(img.name, False, width, height)
-    for w in range(width):
-        for h in range(height):
-            pix = img.get_pixel(w, h)
-            r, g, b = pix.red, pix.green, pix.blue
-            avg = r // 3 + g // 3 + b // 3
-            if avg < 128:
-                new_red, new_green, new_blue = 0, 0, 9
-            else:
-                new_red, new_green, new_blue = 255, 255, 255
-            new_pix = image.Pixel(new_red,new_green, new_blue)
-            new_img.set_pixel(new_pix, w, h)
-    return new_img
+def black_and_white(pix):
+    r, g, b = pix.red, pix.green, pix.blue
+    avg = r // 3 + g // 3 + b // 3
+    if avg < 128:
+        new_red, new_green, new_blue = 0, 0, 9
+    else:
+        new_red, new_green, new_blue = 255, 255, 255
+    new_pix = image.Pixel(new_red,new_green, new_blue)
+    return new_pix
 
 def double(img):
     new_width, new_height = img.get_width() * 2, img.get_height() * 2
@@ -105,7 +68,7 @@ def double(img):
                     new_img.set_pixel(pix, 2 * w + i, 2 * h + j)
     return new_img
 
-def halve(img):
+def half_size(img):
     # Drop final row or column if width or height is odd
     width, height = (img.get_width() // 2) * 2, (img.get_height() // 2) * 2
     new_width, new_height = img.get_width() // 2, img.get_height() // 2
@@ -124,28 +87,38 @@ def halve(img):
             new_img.set_pixel(new_pix, w // 2, h // 2)
     return new_img
 
+
+def load_image():
+    name = input("Enter image name with extension: ")
+    return image.Image(name, load = True)
+
+def help():
+    filters = """Filters:
+    rr, rg, rb: remove red, green or blue
+    grey: greyscale
+    bw: black and white
+    double: double size
+    half: half size"""
+    commands = """Commands:
+    load, save, save as, undo, help, quit"""
+    print(filters)
+    print(commands)
+
 filters = {
     "rr": curry(one_to_one, remove_red),
-    "rg": remove_green,
-    "rb": remove_blue,
-    "g": greyscale,
-    "bw": black_and_white,
-    "d": double,
-    "h": halve}
+    "rg": curry(one_to_one, remove_green),
+    "rb": curry(one_to_one, remove_blue),
+    "grey": curry(one_to_one, greyscale),
+    "bw": curry(one_to_one, black_and_white),
+    "double": double,
+    "half": half_size}
 
-name = input("Enter image name with extension: ")
-cur_img = image.Image(name, load = True)
-cur_img.draw()
+# Set globals: history, cur_img, img_saved.
+history = []
+cur_img = load_image()
 img_saved = True
-
-history = [cur_img]
-
-# See filters dictionary above for filter choices
-# Commands: 'l' - load
-#           's' - save
-#           'sa' - save as
-#           'q' - quit
-#           'u' - undo
+cur_img.draw()
+history.append(cur_img)
 
 while True:
     choice = input("Command or filter: ")
@@ -158,29 +131,31 @@ while True:
             history.pop(1)
             history.append(cur_img)
         img_saved = False
-    elif choice == "u":
+    elif choice == "undo":
         if len(history) > 1:
             history.pop()
             cur_img = history[-1]
             cur_img.draw()
         else:
             print("History empty.")
-    elif choice == "l":
+    elif choice == "load":
         name = input("Enter image name with extension: ")
         cur_img  =  image.Image(name, load = True)
         cur_img.draw()
         history = [cur_img]
         img_saved = True
-    elif choice == "s":
+    elif choice == "save":
         if input("Will overwrite. Carry on (y or n)? ") == "y":
             cur_img.save()
             img_saved = True
-    elif choice == "sa":
+    elif choice == "save as":
         new_name = input("Enter image name with extension or x to exit: ")
         if new_name != "x":
             cur_img.save_as(new_name)
             img_saved = True
-    elif choice == "q":
+    elif choice == "help":
+        help()    
+    elif choice == "quit":
         if img_saved:
             image.quit()
             break
